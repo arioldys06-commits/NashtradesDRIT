@@ -1,4 +1,4 @@
-MetaTrader5==5.0.45
+MetaTrader5==5.0.6180
 supabase==2.7.4
 python-dotenv==1.0.1
 pandas==2.2.2
