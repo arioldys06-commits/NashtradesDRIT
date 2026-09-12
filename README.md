@@ -35,6 +35,18 @@ Luego correr el schema en el proyecto Supabase nuevo:
 supabase/schema.sql
 ```
 
+## Probar las conexiones (antes de programar estrategias)
+
+Con `.env` ya lleno:
+
+```bash
+python test_mt5_connection.py   # verifica que conecta a la terminal/cuenta correcta
+python test_telegram.py         # envía un mensaje de prueba al canal
+```
+
+`test_mt5_connection.py` alerta si la cuenta conectada no coincide con `MT5_LOGIN`
+en `.env` — señal de que tomó la terminal equivocada (ej. la de TradingProEA).
+
 ## Estructura
 
 ```
