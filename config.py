@@ -30,10 +30,13 @@ SYMBOL = os.getenv("SYMBOL", "GOLD")
 
 # --- Estrategias activas (se va llenando a medida que se definan) ---
 ALLOWED_STRATEGIES = [
-    # "nombre_estrategia_1",
+    "AGV_Gold_Precision_Scalper",
 ]
 
-# --- Parámetros de scoring / filtros (placeholders, ajustar al definir estrategias) ---
+# --- Parámetros de scoring / filtros ---
+# Piso general del motor de señales. AGV_Gold_Precision_Scalper exige 90/100
+# internamente (ver strategies/agv_gold_precision_scalper.py) — este MIN_SCORE
+# es solo el filtro global que aplica a cualquier estrategia futura.
 MIN_SCORE = 75
 BOT_LOOP_INTERVAL = 15  # segundos
 

@@ -2,13 +2,13 @@
 signal_engine.py — NashtradesDRIT
 
 Orquesta las estrategias en strategies/ y decide si se genera una señal.
-Todavía sin estrategias cargadas: este es el esqueleto de arquitectura.
 """
 from config import ALLOWED_STRATEGIES, MIN_SCORE, SYMBOL
+from strategies import agv_gold_precision_scalper
 
 # Cada estrategia nueva se registra aquí una vez creada en strategies/
 STRATEGY_REGISTRY = {
-    # "nombre_estrategia_1": strategy_module.evaluate,
+    agv_gold_precision_scalper.STRATEGY_NAME: agv_gold_precision_scalper.evaluate,
 }
 
 

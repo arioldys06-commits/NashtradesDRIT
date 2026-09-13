@@ -62,7 +62,22 @@ NashtradesDRIT/
 └── START_ALL.bat          # Lanza todos los procesos
 ```
 
+## Estrategias
+
+### AGV Gold Precision Scalper (`strategies/agv_gold_precision_scalper.py`)
+Sistema hibrido multi-timeframe (H1→M1) inspirado en Al Brooks, Mack (PATS),
+Bob Volman y Linda Raschke. Score 0-100, exige ≥90 para operar. Ver el
+docstring del archivo para las reglas completas de entrada, bloqueos
+absolutos y gestion de riesgo (TP1/TP2, breakeven, limite diario, cooldown).
+
+Verificado con datos sinteticos: la logica de deteccion (tendencia H1,
+estructura M30, BOS M15, CHOCH+impulso M1) funciona correctamente. Los
+umbrales de tolerancia (multiplicador de ATR, periodo de EMA para el
+retroceso M5) **todavia no estan calibrados con datos reales** — hacerlo
+con `backtest_engine.py` antes de operar en vivo o incluso en demo.
+
 ## Próximos pasos
-1. Confirmar credenciales de la cuenta XMGlobal nueva en `.env`
-2. Crear el proyecto Supabase nuevo y correr `schema.sql`
-3. Definir la primera estrategia nueva en `strategies/`
+1. Calibrar los umbrales de AGV_Gold_Precision_Scalper con backtesting real
+2. Implementar `news_engine.py` (filtro de noticias de alto impacto) — ver TODOs en bot_engine.py
+3. Implementar el envio real de ordenes en `execute_signal()` (bot_engine.py)
+4. Probar en cuenta demo antes de arriesgar capital real
