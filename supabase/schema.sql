@@ -4,7 +4,7 @@
 create table if not exists signals (
     id uuid primary key default gen_random_uuid(),
     created_at timestamptz default now(),
-    symbol text not null default 'XAUUSD',
+    symbol text not null default 'GOLD',
     strategy text not null,
     direction text not null check (direction in ('BUY', 'SELL')),
     entry_price numeric,
@@ -20,7 +20,7 @@ create table if not exists trades_ejecutados (
     id uuid primary key default gen_random_uuid(),
     created_at timestamptz default now(),
     signal_id uuid references signals(id),
-    symbol text not null default 'XAUUSD',
+    symbol text not null default 'GOLD',
     strategy text,
     direction text,
     origen text default 'BOT' check (origen in ('BOT', 'MANUAL', 'BOT_MANUAL')),
@@ -36,7 +36,7 @@ create table if not exists trades_ejecutados (
 
 create table if not exists ohlc_candles (
     id bigserial primary key,
-    symbol text not null default 'XAUUSD',
+    symbol text not null default 'GOLD',
     timeframe text not null,
     time timestamptz not null,
     open numeric,
