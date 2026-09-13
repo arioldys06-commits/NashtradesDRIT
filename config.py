@@ -21,6 +21,10 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID", "")
 
+# --- News engine (calendario ForexFactory + Alpha Vantage + sesgo Claude) ---
+ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY", "")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+
 # --- Timezone ---
 LOCAL_TZ = os.getenv("LOCAL_TZ", "America/Santo_Domingo")
 

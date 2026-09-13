@@ -200,6 +200,8 @@ def evaluate(market_data: dict):
             "tp1": tp1,
             "tp2": tp2,
             "tp1_close_pct": TP1_CLOSE_PCT,
+            "move_to_breakeven_after_tp1": True,
+            "breakeven_buffer_points": 2,  # cubre spread/costos, no breakeven exacto
             "score": score,
             "risk_per_trade_pct": RISK_PER_TRADE_PCT,
             "max_risk_per_trade_pct": MAX_RISK_PER_TRADE_PCT,

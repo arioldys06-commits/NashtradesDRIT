@@ -57,3 +57,23 @@ create table if not exists backtests (
     net_profit numeric,
     notes text
 );
+
+create table if not exists news_events (
+    id uuid primary key default gen_random_uuid(),
+    created_at timestamptz default now(),
+    dedup_key text unique,
+    source text,
+    raw_type text,
+    event_time timestamptz,
+    currency text,
+    impact text,
+    title text,
+    summary text,
+    url text,
+    forecast text,
+    previous_value text,
+    actual_value text,
+    ai_bias text,
+    ai_confidence text,
+    ai_reasoning text
+);

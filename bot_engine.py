@@ -3,16 +3,15 @@ bot_engine.py — NashtradesDRIT
 
 Loop principal: conecta a MT5, pide señales a signal_engine, ejecuta y gestiona posiciones.
 
-TODOs pendientes antes de operar en vivo (bloqueos que la estrategia NO puede
-verificar por si sola, ver strategies/agv_gold_precision_scalper.py):
-  - Filtro de noticias de alto impacto: falta integrar un calendario economico
-    (TradingProEA ya tiene news_engine.py con ForexFactory + Alpha Vantage;
-    replicar ese patron aqui cuando se vaya a operar en vivo).
+TODOs pendientes antes de operar en vivo:
   - Envio real de ordenes: execute_signal() todavia solo imprime/registra,
     no manda la orden a MT5 — hacerlo despues de validar con backtesting.
   - Conteo de trades diarios y cooldown: implementados aqui en memoria
     (se pierden si el proceso se reinicia); para produccion mover a Supabase
     (tabla trades_ejecutados) como hace result_tracker.py en TradingProEA.
+  - news_engine.py debe correr periodicamente (ej. cada 15-30 min, en un
+    proceso/scheduler separado) para mantener news_events actualizado —
+    is_high_impact_news_nearby() solo LEE la tabla, no la actualiza.
 """
 import time
 from datetime import datetime, timezone
@@ -25,6 +24,7 @@ from config import (
     MAGIC_NUMBER, SYMBOL, FIXED_LOT, BOT_LOOP_INTERVAL,
 )
 from signal_engine import evaluate_all_strategies
+from news_engine import is_high_impact_news_nearby
 
 TIMEFRAMES = {
     "H1": mt5.TIMEFRAME_H1,
@@ -130,7 +130,10 @@ def execute_signal(signal: dict):
         print("[BLOQUEADO] Cooldown activo tras la ultima operacion.")
         return
 
-    # TODO: chequear noticias de alto impacto antes de este punto (ver TODO arriba)
+    # Bloqueo absoluto: noticia de alto impacto cercana (calendario, no sesgo de IA)
+    if is_high_impact_news_nearby():
+        print("[BLOQUEADO] Noticia de alto impacto cercana (ver news_events en Supabase).")
+        return
 
     print(f"[SEÑAL VALIDA] {signal}")
     # TODO: aqui va mt5.order_send(...) una vez validado con backtesting
