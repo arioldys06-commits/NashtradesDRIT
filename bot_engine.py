@@ -150,9 +150,16 @@ def main_loop():
         while True:
             market_data = get_market_data()
             if market_data:
+                last_close = market_data["M1"]["close"].iloc[-1]
+                last_time = market_data["M1"]["time"].iloc[-1]
+                print(f"[CICLO] Velas cargadas OK — ultima M1: {last_time} close={last_close}")
                 signals = evaluate_all_strategies(market_data)
+                if not signals:
+                    print("[CICLO] Sin señal (score < 90 o bloqueo activo)")
                 for signal in signals:
                     execute_signal(signal)
+            else:
+                print("[CICLO] No se pudieron cargar velas — revisar conexion MT5")
 
             time.sleep(BOT_LOOP_INTERVAL)
     except KeyboardInterrupt:
