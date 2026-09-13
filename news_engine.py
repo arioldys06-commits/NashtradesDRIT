@@ -43,7 +43,7 @@ log = logging.getLogger("news_engine")
 ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
-FF_CALENDAR_URL = "https://cdn-nfs.faireconomy.media/ff_calendar_thisweek.json"
+FF_CALENDAR_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
 AV_NEWS_URL = "https://www.alphavantage.co/query"
 
 # Monedas relevantes para GOLD: USD mueve el oro directamente;
