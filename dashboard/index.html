@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NashtradesDRIT — Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#0B0D10;
+    --panel:#13161B;
+    --panel-2:#181C22;
+    --border:#22262E;
+    --text:#E7E5DF;
+    --muted:#7B818C;
+    --gold:#C9A86A;
+    --gold-dim:#8A744A;
+    --green:#4CAF6D;
+    --red:#E2574C;
+    --amber:#D89A3E;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--gold);}
+
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:22px 28px;
+    border-bottom:1px solid var(--border);
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .brand{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .brand .mark{
+    color:var(--gold);
+    font-weight:700;
+    font-size:20px;
+    letter-spacing:0.5px;
+  }
+  .brand .sub{
+    color:var(--muted);
+    font-size:13px;
+  }
+  .statuses{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .status-pill{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding:6px 12px;
+    border:1px solid var(--border);
+    border-radius:20px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+    background:var(--panel);
+  }
+  .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--red);
+    flex-shrink:0;
+  }
+  .dot.on{background:var(--green); box-shadow:0 0 6px var(--green);}
+  .dot.off{background:var(--red);}
+
+  main{
+    max-width:1240px;
+    margin:0 auto;
+    padding:24px 28px 60px;
+  }
+
+  .stat-strip{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    margin-bottom:28px;
+  }
+  .stat{
+    background:var(--panel);
+    padding:16px 18px;
+  }
+  .stat .label{
+    color:var(--muted);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    margin-bottom:6px;
+  }
+  .stat .value{
+    font-family:var(--mono);
+    font-size:22px;
+    font-weight:600;
+  }
+  .stat .value.gold{color:var(--gold);}
+
+  .grid{
+    display:grid;
+    grid-template-columns:1.7fr 1fr;
+    gap:20px;
+  }
+  @media (max-width: 880px){
+    .grid{grid-template-columns:1fr;}
+    .stat-strip{grid-template-columns:repeat(2,1fr);}
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .panel-head{
+    padding:14px 18px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .panel-head h2{
+    margin:0;
+    font-size:14px;
+    font-weight:600;
+    color:var(--text);
+  }
+  .panel-head .count{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:var(--mono);
+    font-size:12.5px;
+  }
+  th{
+    text-align:left;
+    padding:10px 14px;
+    color:var(--muted);
+    font-weight:500;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    border-bottom:1px solid var(--border);
+  }
+  td{
+    padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--panel-2);}
+
+  .dir-buy{color:var(--green); font-weight:600;}
+  .dir-sell{color:var(--red); font-weight:600;}
+
+  .badge{
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:12px;
+    font-size:11px;
+    font-family:var(--mono);
+  }
+  .badge.pending{background:rgba(216,154,62,0.15); color:var(--amber);}
+  .badge.executed{background:rgba(76,175,109,0.15); color:var(--green);}
+  .badge.blocked{background:rgba(226,87,76,0.15); color:var(--red);}
+
+  .news-item{
+    padding:12px 18px;
+    border-bottom:1px solid var(--border);
+  }
+  .news-item:last-child{border-bottom:none;}
+  .news-item .title{
+    font-size:13px;
+    line-height:1.4;
+    margin-bottom:5px;
+  }
+  .news-item .meta{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .impact-alto{color:var(--red); font-weight:600;}
+  .impact-medio{color:var(--amber);}
+  .bias-alcista{color:var(--green);}
+  .bias-bajista{color:var(--red);}
+  .bias-neutral{color:var(--muted);}
+
+  .empty{
+    padding:32px 18px;
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  footer{
+    max-width:1240px;
+    margin:0 auto;
+    padding:0 28px 30px;
+    color:var(--muted);
+    font-size:11.5px;
+    font-family:var(--mono);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="mark">NASHTRADESDRIT</span>
+    <span class="sub">AGV Gold Precision Scalper</span>
+  </div>
+  <div class="statuses" id="statuses">
+    <div class="status-pill"><span class="dot" id="dot-signal_engine"></span>Signal Engine</div>
+    <div class="status-pill"><span class="dot" id="dot-bot_engine"></span>Bot Engine</div>
+    <div class="status-pill"><span class="dot" id="dot-news_engine"></span>News Engine</div>
+  </div>
+</header>
+
+<main>
+
+  <div class="stat-strip">
+    <div class="stat">
+      <div class="label">Trades hoy</div>
+      <div class="value gold" id="stat-trades-today">—</div>
+    </div>
+    <div class="stat">
+      <div class="label">Señales pendientes</div>
+      <div class="value" id="stat-pending">—</div>
+    </div>
+    <div class="stat">
+      <div class="label">Última señal</div>
+      <div class="value" id="stat-last-signal" style="font-size:14px;">—</div>
+    </div>
+    <div class="stat">
+      <div class="label">Noticias alto impacto (24h)</div>
+      <div class="value" id="stat-news-count">—</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Señales recientes</h2>
+        <span class="count" id="signals-count">0</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Dir</th>
+              <th>Score</th>
+              <th>Entrada</th>
+              <th>SL</th>
+              <th>TP1</th>
+              <th>TP2</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="signals-body">
+            <tr><td colspan="8" class="empty">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Noticias de alto impacto</h2>
+        <span class="count" id="news-count">0</span>
+      </div>
+      <div id="news-body">
+        <div class="empty">Cargando…</div>
+      </div>
+    </section>
+  </div>
+
+</main>
+
+<footer>
+  Actualiza cada 10s · <span id="last-refresh">—</span>
+</footer>
+
+<script>
+  // --- Configuracion ---
+  const SUPABASE_URL = "https://iakogklqdjbgvvgwwdqd.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlha29na2xxZGpiZ3Z2Z3d3ZHFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyNjE0NjgsImV4cCI6MjEwNDgzNzQ2OH0.8YNOzAfw0CwdGxLVwp3VnfM5Tul7VhU_EwcA0VnXsNk";
+  const HEARTBEAT_STALE_SECONDS = 45; // si no reporta en este tiempo, se marca offline
+
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function fmtNum(n){
+    if (n === null || n === undefined) return "—";
+    return Number(n).toFixed(2);
+  }
+
+  function fmtTime(iso){
+    if (!iso) return "—";
+    const d = new Date(iso);
+    return d.toLocaleString("es-DO", { month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+  }
+
+  function statusBadgeClass(status){
+    if (status === "PENDING") return "pending";
+    if (status === "EXECUTED") return "executed";
+    if (status && status.startsWith("BLOCKED")) return "blocked";
+    return "pending";
+  }
+
+  async function loadHeartbeats(){
+    const { data, error } = await client.from("bot_heartbeats").select("*");
+    if (error){ console.error(error); return; }
+
+    const now = Date.now();
+    const byName = {};
+    (data || []).forEach(row => byName[row.process_name] = row);
+
+    ["signal_engine","bot_engine","news_engine"].forEach(name => {
+      const dot = document.getElementById("dot-" + name);
+      const row = byName[name];
+      if (!row){ dot.className = "dot off"; return; }
+      const ageSec = (now - new Date(row.last_seen).getTime()) / 1000;
+      dot.className = ageSec <= HEARTBEAT_STALE_SECONDS ? "dot on" : "dot off";
+    });
+  }
+
+  async function loadSignals(){
+    const { data, error } = await client
+      .from("signals")
+      .select("*")
+      .eq("symbol", "GOLD")
+      .order("created_at", { ascending:false })
+      .limit(20);
+
+    if (error){ console.error(error); return; }
+
+    const tbody = document.getElementById("signals-body");
+    document.getElementById("signals-count").textContent = data.length;
+
+    if (!data.length){
+      tbody.innerHTML = '<tr><td colspan="8" class="empty">Sin señales todavía — el mercado puede estar cerrado o sin setup válido.</td></tr>';
+    } else {
+      tbody.innerHTML = data.map(s => `
+        <tr>
+          <td>${fmtTime(s.created_at)}</td>
+          <td class="${s.direction === 'BUY' ? 'dir-buy' : 'dir-sell'}">${s.direction}</td>
+          <td>${s.score ?? "—"}</td>
+          <td>${fmtNum(s.entry_price)}</td>
+          <td>${fmtNum(s.sl)}</td>
+          <td>${fmtNum(s.tp1)}</td>
+          <td>${fmtNum(s.tp2)}</td>
+          <td><span class="badge ${statusBadgeClass(s.status)}">${s.status}</span></td>
+        </tr>
+      `).join("");
+    }
+
+    // stats derivados
+    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    const executedToday = data.filter(s => s.status === "EXECUTED" && new Date(s.created_at) >= todayStart);
+    const pending = data.filter(s => s.status === "PENDING");
+
+    document.getElementById("stat-trades-today").textContent = executedToday.length + "/3";
+    document.getElementById("stat-pending").textContent = pending.length;
+    document.getElementById("stat-last-signal").textContent = data.length ? fmtTime(data[0].created_at) : "—";
+  }
+
+  async function loadNews(){
+    const since = new Date(Date.now() - 24*3600*1000).toISOString();
+    const { data, error } = await client
+      .from("news_events")
+      .select("*")
+      .eq("impact", "Alto")
+      .gte("event_time", since)
+      .order("event_time", { ascending:false })
+      .limit(15);
+
+    if (error){ console.error(error); return; }
+
+    const container = document.getElementById("news-body");
+    document.getElementById("news-count").textContent = data.length;
+    document.getElementById("stat-news-count").textContent = data.length;
+
+    if (!data.length){
+      container.innerHTML = '<div class="empty">Sin eventos de alto impacto en las últimas 24h.</div>';
+      return;
+    }
+
+    container.innerHTML = data.map(n => `
+      <div class="news-item">
+        <div class="title">${n.title || "(sin título)"}</div>
+        <div class="meta">
+          <span class="impact-alto">● Alto</span>
+          <span>${n.currency || ""}</span>
+          <span>${fmtTime(n.event_time)}</span>
+          ${n.ai_bias ? `<span class="bias-${n.ai_bias}">sesgo: ${n.ai_bias}</span>` : ""}
+        </div>
+      </div>
+    `).join("");
+  }
+
+  async function refreshAll(){
+    await Promise.all([loadHeartbeats(), loadSignals(), loadNews()]);
+    document.getElementById("last-refresh").textContent = new Date().toLocaleTimeString("es-DO");
+  }
+
+  refreshAll();
+  setInterval(refreshAll, 10000);
+</script>
+
+</body>
+</html>

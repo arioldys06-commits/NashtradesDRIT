@@ -31,7 +31,8 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 import anthropic
 
-from config import SUPABASE_URL, SUPABASE_KEY
+from config import SUPABASE_URL, SUPABASE_SERVICE_KEY
+from heartbeat_utils import send_heartbeat
 
 load_dotenv()
 
@@ -56,7 +57,7 @@ RELEVANT_IMPACT = {"High", "Medium"}  # se descartan Low/Holiday
 NEWS_BLOCK_MINUTES_BEFORE = 30
 NEWS_BLOCK_MINUTES_AFTER = 30
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 claude = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY) if ANTHROPIC_API_KEY else None
 
 
@@ -271,6 +272,7 @@ def is_high_impact_news_nearby(
 # ------------------------------------------------------------------
 def run_once():
     log.info("=== Iniciando ciclo de news_engine ===")
+    send_heartbeat("news_engine")
     items = fetch_forexfactory_calendar() + fetch_alphavantage_news()
 
     if not items:

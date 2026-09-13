@@ -15,7 +15,8 @@ MT5_PATH = os.getenv("MT5_PATH", "")
 
 # --- Supabase ---
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")  # anon/publishable — solo lectura (RLS), usar en frontend
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")  # service_role — permisos completos, SOLO backend
 
 # --- Telegram ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")

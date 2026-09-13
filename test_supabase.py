@@ -8,16 +8,16 @@ Correr en Windows, con .env ya lleno:
     python test_supabase.py
 """
 from supabase import create_client
-from config import SUPABASE_URL, SUPABASE_KEY
+from config import SUPABASE_URL, SUPABASE_SERVICE_KEY
 
 
 def main():
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        print("[FALLO] Falta SUPABASE_URL o SUPABASE_KEY en .env")
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        print("[FALLO] Falta SUPABASE_URL o SUPABASE_SERVICE_KEY en .env")
         return
 
     print(f"Conectando a Supabase: {SUPABASE_URL}")
-    client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
     test_signal = {
         "symbol": "GOLD",

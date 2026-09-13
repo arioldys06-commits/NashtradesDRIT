@@ -77,3 +77,25 @@ create table if not exists news_events (
     ai_confidence text,
     ai_reasoning text
 );
+
+create table if not exists bot_heartbeats (
+    process_name text primary key,
+    last_seen timestamptz not null default now(),
+    extra jsonb
+);
+
+-- RLS: lectura publica (para el dashboard, con la key anon/publishable),
+-- escritura SOLO con la service_role key (usada por el backend Python).
+alter table signals enable row level security;
+alter table trades_ejecutados enable row level security;
+alter table ohlc_candles enable row level security;
+alter table backtests enable row level security;
+alter table news_events enable row level security;
+alter table bot_heartbeats enable row level security;
+
+create policy "public read signals" on signals for select using (true);
+create policy "public read trades_ejecutados" on trades_ejecutados for select using (true);
+create policy "public read ohlc_candles" on ohlc_candles for select using (true);
+create policy "public read backtests" on backtests for select using (true);
+create policy "public read news_events" on news_events for select using (true);
+create policy "public read bot_heartbeats" on bot_heartbeats for select using (true);

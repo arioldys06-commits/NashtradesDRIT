@@ -14,10 +14,11 @@ import time
 
 from supabase import create_client
 
-from config import ALLOWED_STRATEGIES, MIN_SCORE, SYMBOL, SUPABASE_URL, SUPABASE_KEY, MAGIC_NUMBER
+from config import ALLOWED_STRATEGIES, MIN_SCORE, SYMBOL, SUPABASE_URL, SUPABASE_SERVICE_KEY, MAGIC_NUMBER
 from strategies import agv_gold_precision_scalper
 from mt5_utils import connect_mt5, get_market_data
 from telegram_utils import send_telegram_message
+from heartbeat_utils import send_heartbeat
 
 SIGNAL_LOOP_INTERVAL = 15  # segundos
 
@@ -26,7 +27,7 @@ STRATEGY_REGISTRY = {
     agv_gold_precision_scalper.STRATEGY_NAME: agv_gold_precision_scalper.evaluate,
 }
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 
 def evaluate_all_strategies(market_data: dict) -> list[dict]:
@@ -97,6 +98,7 @@ def main_loop():
             if market_data:
                 last_time = market_data["M1"]["time"].iloc[-1]
                 print(f"[signal_engine] Ciclo OK — ultima M1: {last_time}")
+                send_heartbeat("signal_engine", {"last_candle": str(last_time)})
 
                 signals = evaluate_all_strategies(market_data)
                 if not signals:

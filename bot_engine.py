@@ -24,15 +24,16 @@ from datetime import datetime, timezone
 
 from supabase import create_client
 
-from config import SYMBOL, FIXED_LOT, BOT_LOOP_INTERVAL, SUPABASE_URL, SUPABASE_KEY, MAGIC_NUMBER
+from config import SYMBOL, FIXED_LOT, BOT_LOOP_INTERVAL, SUPABASE_URL, SUPABASE_SERVICE_KEY, MAGIC_NUMBER
 from mt5_utils import connect_mt5, has_open_position
 from news_engine import is_high_impact_news_nearby
 from telegram_utils import send_telegram_message
+from heartbeat_utils import send_heartbeat
 
 MAX_TRADES_PER_DAY = 3     # ver strategies/agv_gold_precision_scalper.py
 COOLDOWN_MINUTES = 30      # ver strategies/agv_gold_precision_scalper.py
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 
 def fetch_pending_signals() -> list[dict]:
@@ -134,6 +135,7 @@ def main_loop():
     try:
         while True:
             pending = fetch_pending_signals()
+            send_heartbeat("bot_engine", {"pending_signals": len(pending)})
             if pending:
                 print(f"[bot_engine] {len(pending)} señal(es) pendiente(s)")
                 for signal in pending:
