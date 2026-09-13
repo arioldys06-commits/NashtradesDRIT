@@ -23,6 +23,7 @@ from supabase import create_client
 from config import SYMBOL, FIXED_LOT, BOT_LOOP_INTERVAL, SUPABASE_URL, SUPABASE_KEY, MAGIC_NUMBER
 from mt5_utils import connect_mt5, has_open_position
 from news_engine import is_high_impact_news_nearby
+from telegram_utils import send_telegram_message
 
 # Estado en memoria (se reinicia si el bot se reinicia — ver TODO arriba)
 _daily_trade_count = 0
@@ -123,6 +124,7 @@ def main_loop():
         return
 
     print(f"[bot_engine] Haciendo polling a la tabla signals cada {BOT_LOOP_INTERVAL}s...")
+    send_telegram_message("🟢 NashtradesDRIT — Bot Engine activado y conectado a MT5.")
 
     try:
         while True:
@@ -134,6 +136,7 @@ def main_loop():
             time.sleep(BOT_LOOP_INTERVAL)
     except KeyboardInterrupt:
         print("bot_engine detenido manualmente.")
+        send_telegram_message("🔴 NashtradesDRIT — Bot Engine detenido manualmente.")
 
 
 if __name__ == "__main__":

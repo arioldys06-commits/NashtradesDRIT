@@ -17,6 +17,7 @@ from supabase import create_client
 from config import ALLOWED_STRATEGIES, MIN_SCORE, SYMBOL, SUPABASE_URL, SUPABASE_KEY, MAGIC_NUMBER
 from strategies import agv_gold_precision_scalper
 from mt5_utils import connect_mt5, get_market_data
+from telegram_utils import send_telegram_message
 
 SIGNAL_LOOP_INTERVAL = 15  # segundos
 
@@ -66,8 +67,18 @@ def publish_signal(signal: dict):
     try:
         result = supabase.table("signals").insert(row).execute()
         signal_id = result.data[0]["id"] if result.data else None
-        print(f"[SEÑAL PUBLICADA] id={signal_id} {signal['direction']} score={signal['score']} "
-              f"entry={signal['entry_price']:.2f} sl={signal['sl']:.2f} tp1={signal['tp1']:.2f} tp2={signal['tp2']:.2f}")
+        msg = (f"[SEÑAL PUBLICADA] id={signal_id} {signal['direction']} score={signal['score']} "
+               f"entry={signal['entry_price']:.2f} sl={signal['sl']:.2f} tp1={signal['tp1']:.2f} tp2={signal['tp2']:.2f}")
+        print(msg)
+        send_telegram_message(
+            f"📊 Nueva señal NashtradesDRIT\n"
+            f"Estrategia: {signal.get('strategy')}\n"
+            f"Dirección: {signal['direction']}\n"
+            f"Score: {signal['score']}/100\n"
+            f"Entrada: {signal['entry_price']:.2f}\n"
+            f"SL: {signal['sl']:.2f}\n"
+            f"TP1: {signal['tp1']:.2f} | TP2: {signal['tp2']:.2f}"
+        )
     except Exception as e:
         print(f"[ERROR] No se pudo publicar la señal en Supabase: {e}")
 
@@ -77,6 +88,7 @@ def main_loop():
         return
 
     print(f"[signal_engine] Estrategias activas: {ALLOWED_STRATEGIES}")
+    send_telegram_message("🟢 NashtradesDRIT — Signal Engine activado y conectado a MT5.")
 
     try:
         while True:
@@ -97,6 +109,7 @@ def main_loop():
             time.sleep(SIGNAL_LOOP_INTERVAL)
     except KeyboardInterrupt:
         print("signal_engine detenido manualmente.")
+        send_telegram_message("🔴 NashtradesDRIT — Signal Engine detenido manualmente.")
 
 
 if __name__ == "__main__":
