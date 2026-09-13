@@ -52,15 +52,33 @@ en `.env` — señal de que tomó la terminal equivocada (ej. la de TradingProEA
 ```
 NashtradesDRIT/
 ├── config.py              # Configuración central (lee .env)
-├── signal_engine.py       # Generación de señales (orquesta strategies/)
-├── bot_engine.py          # Loop de ejecución en MT5
-├── result_tracker.py      # Tracking de resultados / winrate
-├── sync_trades_supabase.py # Sincroniza trades ejecutados a Supabase
-├── backtest_engine.py     # Backtesting sobre datos históricos
-├── strategies/            # Estrategias nuevas (vacío, por definir)
-├── supabase/schema.sql    # Schema inicial para el proyecto Supabase nuevo
-└── START_ALL.bat          # Lanza todos los procesos
+├── mt5_utils.py           # Conexion MT5 y carga de velas compartida
+├── signal_engine.py       # Proceso 1: evalua estrategias, publica señales a Supabase
+├── bot_engine.py          # Proceso 2: polling a señales pendientes, ejecuta/bloquea
+├── news_engine.py         # Proceso 3: calendario + noticias + sesgo Claude
+├── result_tracker.py      # Tracking de resultados / winrate (pendiente)
+├── sync_trades_supabase.py # Sincroniza trades ejecutados a Supabase (pendiente)
+├── backtest_engine.py     # Backtesting sobre datos historicos (pendiente)
+├── strategies/            # Estrategias y utilidades de indicadores
+├── supabase/schema.sql    # Schema del proyecto Supabase
+└── START_ALL.bat          # Abre las 3 consolas (signal_engine, bot_engine, news_engine)
 ```
+
+## Arquitectura (igual a TradingProEA)
+`signal_engine.py` y `bot_engine.py` corren como procesos **separados**, cada
+uno en su propia consola, comunicandose a traves de la tabla `signals` de
+Supabase (no llamadas directas en memoria). Esto permite en el futuro correr
+signal_engine en una maquina y bot_engine en otra, cada una con su propio MT5.
+
+- `signal_engine.py`: conecta a MT5, evalua `AGV_Gold_Precision_Scalper` cada
+  15s, y si hay señal valida la inserta en `signals` con status='PENDING'.
+- `bot_engine.py`: conecta a MT5 (su propia sesion), hace polling a `signals`
+  cada 15s, aplica los bloqueos (posicion abierta, limite diario, cooldown,
+  noticias via `news_engine.is_high_impact_news_nearby()`), y marca cada
+  señal como EXECUTED o BLOCKED_* — el envio real de la orden a MT5 sigue
+  pendiente (placeholder) hasta validar con backtesting.
+- `news_engine.py`: corre en loop propio (cada 20 min), jala calendario +
+  noticias, evalua con Claude, y guarda en `news_events`.
 
 ## Estrategias
 

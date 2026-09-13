@@ -21,6 +21,7 @@ Requiere (pip, ya en requirements.txt):
 """
 
 import os
+import time
 import hashlib
 import logging
 from datetime import datetime, timezone, timedelta
@@ -283,5 +284,20 @@ def run_once():
     log.info(f"=== Ciclo terminado: {saved}/{len(items)} guardados ===")
 
 
+NEWS_LOOP_INTERVAL_MINUTES = 20
+
+
+def main_loop():
+    """Corre run_once() en loop continuo — su propia consola, separado de
+    signal_engine.py y bot_engine.py."""
+    print(f"[news_engine] Loop iniciado — cada {NEWS_LOOP_INTERVAL_MINUTES} minutos")
+    try:
+        while True:
+            run_once()
+            time.sleep(NEWS_LOOP_INTERVAL_MINUTES * 60)
+    except KeyboardInterrupt:
+        print("news_engine detenido manualmente.")
+
+
 if __name__ == "__main__":
-    run_once()
+    main_loop()
