@@ -18,7 +18,9 @@ def main():
     print(f"  Server        : {MT5_SERVER}")
     print()
 
-    if not mt5.initialize(path=MT5_PATH, login=MT5_LOGIN, password=MT5_PASSWORD, server=MT5_SERVER):
+    # portable=True evita que se cierre otra instancia de MT5 ya corriendo (ej. TradingProEA)
+    if not mt5.initialize(path=MT5_PATH, login=MT5_LOGIN, password=MT5_PASSWORD,
+                           server=MT5_SERVER, portable=True):
         print(f"[FALLO] mt5.initialize() no pudo conectar. Error: {mt5.last_error()}")
         print("Revisa: ¿la terminal en MT5_PATH existe? ¿está cerrada la de TradingProEA")
         print("        para no confundir cuál instancia toma el proceso?")

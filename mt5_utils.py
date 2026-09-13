@@ -23,7 +23,11 @@ CANDLES_PER_TIMEFRAME = 300
 
 
 def connect_mt5(process_name: str = "") -> bool:
-    if not mt5.initialize(path=MT5_PATH, login=MT5_LOGIN, password=MT5_PASSWORD, server=MT5_SERVER):
+    # portable=True es CRITICO: sin esto, mt5.initialize() puede cerrar
+    # cualquier otra instancia del mismo build de MT5 que ya este corriendo
+    # (ej. la terminal de TradingProEA) para tomar su lugar.
+    if not mt5.initialize(path=MT5_PATH, login=MT5_LOGIN, password=MT5_PASSWORD,
+                           server=MT5_SERVER, portable=True):
         print(f"[ERROR] No se pudo conectar a MT5: {mt5.last_error()}")
         return False
 
