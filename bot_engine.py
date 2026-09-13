@@ -62,12 +62,42 @@ def _rates_to_df(rates) -> pd.DataFrame:
     return df[["time", "open", "high", "low", "close", "tick_volume"]]
 
 
+def _copy_rates_with_timeout(symbol, timeframe, count, timeout_seconds=10):
+    """
+    mt5.copy_rates_from_pos() no tiene timeout nativo y puede quedarse colgado
+    esperando indefinidamente si la terminal aun no tiene el historial
+    descargado (comun en cuentas nuevas). Se corre en un hilo aparte para
+    poder abortar con un mensaje claro en vez de colgar el bot en silencio.
+    """
+    import threading
+
+    result = {"rates": None, "done": False}
+
+    def _worker():
+        result["rates"] = mt5.copy_rates_from_pos(symbol, timeframe, 0, count)
+        result["done"] = True
+
+    thread = threading.Thread(target=_worker, daemon=True)
+    thread.start()
+    thread.join(timeout=timeout_seconds)
+
+    if not result["done"]:
+        return None, True  # (rates, timed_out)
+    return result["rates"], False
+
+
 def get_market_data() -> dict:
     """Carga velas de SYMBOL para cada timeframe desde MT5, mas spread y hora UTC."""
     market_data = {}
 
     for label, tf in TIMEFRAMES.items():
-        rates = mt5.copy_rates_from_pos(SYMBOL, tf, 0, CANDLES_PER_TIMEFRAME)
+        rates, timed_out = _copy_rates_with_timeout(SYMBOL, tf, CANDLES_PER_TIMEFRAME)
+        if timed_out:
+            print(f"[WARN] Timeout esperando velas {label} de {SYMBOL} — "
+                  f"la terminal MT5 probablemente aun no tiene el historial descargado. "
+                  f"Abre el grafico de {SYMBOL} en {label} manualmente y desliza hacia atras "
+                  f"para forzar la descarga, luego reintenta.")
+            return {}
         if rates is None or len(rates) == 0:
             print(f"[WARN] No se pudieron obtener velas {label} de {SYMBOL}")
             return {}
