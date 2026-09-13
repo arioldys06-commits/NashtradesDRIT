@@ -26,7 +26,7 @@ LOCAL_TZ = os.getenv("LOCAL_TZ", "America/Santo_Domingo")
 
 # --- Bot identity ---
 MAGIC_NUMBER = int(os.getenv("MAGIC_NUMBER", "20260901"))
-SYMBOL = os.getenv("SYMBOL", "XAUUSD")
+SYMBOL = os.getenv("SYMBOL", "GOLD")
 
 # --- Estrategias activas (se va llenando a medida que se definan) ---
 ALLOWED_STRATEGIES = [
