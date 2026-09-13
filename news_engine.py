@@ -37,7 +37,7 @@ load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [news_engine] %(levelname)s %(message)s",
+    format="%(asctime)s [%(name)s] %(levelname)s %(message)s",
 )
 log = logging.getLogger("news_engine")
 
