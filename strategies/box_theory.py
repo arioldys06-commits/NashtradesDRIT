@@ -133,7 +133,13 @@ def _evaluate_direction(market_data: dict, direction: str, box):
         score += 15
 
     # Confirmacion M5: BOS a favor de la reversion
-    m5_bos, _ = detect_bos(df_m5, direction)
+    # detect_bos devuelve (bool, nivel) en una version de indicators.py y
+    # solo bool en otra: se aceptan ambas.
+    try:
+        bos_result = detect_bos(df_m5, direction)
+    except Exception:
+        bos_result = False
+    m5_bos = bos_result[0] if isinstance(bos_result, tuple) else bool(bos_result)
     if m5_bos:
         score += 15
 
