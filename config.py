@@ -17,10 +17,13 @@ MT5_PATH = os.getenv("MT5_PATH", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 # service_role — permisos completos, SOLO backend. Las tablas tienen RLS de
 # solo lectura para la anon key, asi que los procesos Python necesitan esta.
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
-# bot_engine.py / news_engine.py importan SUPABASE_KEY: si hay service key se
-# usa esa (para poder escribir), si no, la anon key de .env.
-SUPABASE_KEY = SUPABASE_SERVICE_KEY or os.getenv("SUPABASE_KEY", "")
+# Si .env solo trae SUPABASE_KEY y es la secreta (sb_secret_... / service_role),
+# se usa esa para todo el backend.
+_env_supabase_key = os.getenv("SUPABASE_KEY", "")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY") or _env_supabase_key
+# bot_engine.py / news_engine.py importan SUPABASE_KEY: se usa la service key
+# (para poder escribir con RLS activo).
+SUPABASE_KEY = SUPABASE_SERVICE_KEY
 
 # --- Telegram ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
