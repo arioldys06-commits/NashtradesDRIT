@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 import MetaTrader5 as mt5
 import pandas as pd
 
-from config import MT5_LOGIN, MT5_PASSWORD, MT5_SERVER, MT5_PATH, SYMBOL, MAGIC_NUMBER
+from config import MT5_LOGIN, MT5_PASSWORD, MT5_SERVER, MT5_PATH, SYMBOL, MAGIC_NUMBER, MIN_LOT_MAX_RISK_USD
 
 TIMEFRAMES = {
     "D1": mt5.TIMEFRAME_D1,  # caja del dia anterior (Box_Theory)
@@ -187,6 +187,9 @@ def calculate_lot_size(symbol: str, direction: str, entry: float, sl: float, ris
     if not risk_per_min_lot or risk_per_min_lot <= 0:
         return None
     if risk_per_min_lot > allowed_risk:
+        # Cuenta pequeña: se permite el lote minimo si su riesgo cabe en el tope en dolares
+        if MIN_LOT_MAX_RISK_USD > 0 and risk_per_min_lot <= MIN_LOT_MAX_RISK_USD:
+            return volume_min
         return None
 
     raw_lot = volume_min * allowed_risk / risk_per_min_lot
@@ -199,3 +202,14 @@ def calculate_lot_size(symbol: str, direction: str, entry: float, sl: float, ris
     if risk is None or risk > allowed_risk + 1e-6:
         return None
     return lot
+
+
+def max_allowed_risk_dollars(symbol: str, lot: float, equity: float, risk_pct: float) -> float:
+    """Riesgo maximo aceptado para esta orden: el % normal, o el tope en dolares
+    cuando se esta usando el lote minimo en una cuenta pequeña."""
+    allowed = float(equity) * float(risk_pct) / 100.0
+    info = mt5.symbol_info(symbol)
+    if (MIN_LOT_MAX_RISK_USD > 0 and info is not None
+            and abs(float(lot) - float(info.volume_min)) < 1e-9):
+        allowed = max(allowed, MIN_LOT_MAX_RISK_USD)
+    return allowed

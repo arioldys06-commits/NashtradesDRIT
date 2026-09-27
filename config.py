@@ -84,3 +84,9 @@ MAX_DAILY_LOSSES = int(os.getenv("MAX_DAILY_LOSSES", "2"))
 # 0 = sin techo.
 FIXED_LOT = float(os.getenv("FIXED_LOT", "0.01"))
 MAX_LOSSES_OUTSIDE_KILLZONE = 2
+
+# --- Lote minimo en cuentas pequeñas ---
+# Si el % de riesgo no alcanza ni para el lote minimo (0.01), el bot igual
+# abre el lote minimo SIEMPRE QUE la perdida hasta el SL no pase de este tope
+# en dolares. 0 = desactivado (se bloquea como antes).
+MIN_LOT_MAX_RISK_USD = float(os.getenv("MIN_LOT_MAX_RISK_USD", "20"))

@@ -24,6 +24,7 @@ from config import (
 
 from mt5_utils import (
     calculate_lot_size,
+    max_allowed_risk_dollars,
     calculate_trade_risk_dollars,
     connect_mt5,
     disconnect_mt5,
@@ -413,7 +414,7 @@ def _send_order(
     estimated_risk = calculate_trade_risk_dollars(
         symbol, direction, price, sl, lot,
     )
-    allowed_risk = float(account.equity) * risk_pct / 100.0
+    allowed_risk = max_allowed_risk_dollars(symbol, lot, account.equity, risk_pct)
     if estimated_risk is None or estimated_risk > allowed_risk + 1e-6:
         log.info(
             "[BLOCK] Riesgo actual %s excede límite $%.2f.",
