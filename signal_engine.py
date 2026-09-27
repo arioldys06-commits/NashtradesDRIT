@@ -15,7 +15,7 @@ import time
 from supabase import create_client
 
 from config import ALLOWED_STRATEGIES, MIN_SCORE, SYMBOL, SUPABASE_URL, SUPABASE_SERVICE_KEY, MAGIC_NUMBER
-from strategies import agv_gold_precision_scalper
+from strategies import agv_gold_precision_scalper, box_theory
 from mt5_utils import connect_mt5, get_market_data
 from telegram_utils import send_telegram_message
 from heartbeat_utils import send_heartbeat
@@ -25,6 +25,7 @@ SIGNAL_LOOP_INTERVAL = 15  # segundos
 # Cada estrategia nueva se registra aquí una vez creada en strategies/
 STRATEGY_REGISTRY = {
     agv_gold_precision_scalper.STRATEGY_NAME: agv_gold_precision_scalper.evaluate,
+    box_theory.STRATEGY_NAME: box_theory.evaluate,
 }
 
 supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)

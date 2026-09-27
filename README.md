@@ -94,6 +94,19 @@ umbrales de tolerancia (multiplicador de ATR, periodo de EMA para el
 retroceso M5) **todavia no estan calibrados con datos reales** — hacerlo
 con `backtest_engine.py` antes de operar en vivo o incluso en demo.
 
+### Box Theory (`strategies/box_theory.py`)
+Reversion a la media dentro de la "caja" del dia anterior (the.rumers.trading):
+- **Caja** = HIGH y LOW de la vela D1 anterior, con **linea media** al 50%.
+- Precio en el 25% inferior de la caja + vela M15 de rechazo alcista → **COMPRA**.
+- Precio en el 25% superior de la caja + vela M15 de rechazo bajista → **VENTA**.
+- Precio cerca de la linea media → no opera. Cierre M15 fuera de la caja → caja invalidada.
+- SL fuera del extremo de la caja (+0.3 ATR M15), **TP1 = linea media** (cierra 50% y
+  breakeven), **TP2 = lado opuesto** de la caja (con 10% de margen). R:R minimo 1.5 a TP2.
+- Score 0-100, minimo 80. Una sola señal por vela M15 (no repite cada 15s).
+
+Los parametros (`EDGE_ZONE_PCT`, `BOX_MIN/MAX_ATR_MULT`, `SL_BUFFER_ATR_M15`, etc.)
+son valores iniciales: **calibrar con backtesting antes de operar en vivo**.
+
 ## Próximos pasos
 1. Calibrar los umbrales de AGV_Gold_Precision_Scalper con backtesting real
 2. Implementar `news_engine.py` (filtro de noticias de alto impacto) — ver TODOs en bot_engine.py

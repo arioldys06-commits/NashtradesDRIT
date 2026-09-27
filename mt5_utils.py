@@ -13,6 +13,7 @@ import pandas as pd
 from config import MT5_LOGIN, MT5_PASSWORD, MT5_SERVER, MT5_PATH, SYMBOL, MAGIC_NUMBER
 
 TIMEFRAMES = {
+    "D1": mt5.TIMEFRAME_D1,  # caja del dia anterior (Box_Theory)
     "H1": mt5.TIMEFRAME_H1,
     "M30": mt5.TIMEFRAME_M30,
     "M15": mt5.TIMEFRAME_M15,

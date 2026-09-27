@@ -36,6 +36,7 @@ SYMBOL = os.getenv("SYMBOL", "GOLD")
 # --- Estrategias activas (se va llenando a medida que se definan) ---
 ALLOWED_STRATEGIES = [
     "AGV_Gold_Precision_Scalper",
+    "Box_Theory",
 ]
 
 # --- Parámetros de scoring / filtros ---
