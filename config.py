@@ -85,6 +85,11 @@ MAX_DAILY_LOSSES = int(os.getenv("MAX_DAILY_LOSSES", "2"))
 FIXED_LOT = float(os.getenv("FIXED_LOT", "0.01"))
 MAX_LOSSES_OUTSIDE_KILLZONE = 2
 
+# --- Vencimiento de señales ---
+# Una señal PENDING que no se pudo ejecutar en este tiempo se marca EXPIRED
+# (evita que una señal vieja se ejecute horas despues, cuando ya no tiene sentido).
+SIGNAL_MAX_AGE_MINUTES = int(os.getenv("SIGNAL_MAX_AGE_MINUTES", "15"))
+
 # --- Lote minimo en cuentas pequeñas ---
 # Si el % de riesgo no alcanza ni para el lote minimo (0.01), el bot igual
 # abre el lote minimo SIEMPRE QUE la perdida hasta el SL no pase de este tope

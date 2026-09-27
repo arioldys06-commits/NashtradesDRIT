@@ -16,6 +16,7 @@ from config import (
     MAGIC_NUMBER,
     MAX_DAILY_LOSSES,
     MAX_TRADES_PER_DAY,
+    SIGNAL_MAX_AGE_MINUTES,
     SUPABASE_KEY,
     SUPABASE_URL,
     SYMBOL,
@@ -1251,12 +1252,38 @@ def _update_signal_status(
         )
 
 
+def _signal_age_minutes(signal: dict):
+    created_at = signal.get("created_at")
+    if not created_at:
+        return None
+    try:
+        created = datetime.fromisoformat(str(created_at).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if created.tzinfo is None:
+        created = created.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - created).total_seconds() / 60
+
+
 def process_pending_signals():
     signals = (
         _get_pending_signals()
     )
 
     for signal in signals:
+
+        # Señal vieja: se marca EXPIRED y no se vuelve a intentar.
+        age = _signal_age_minutes(signal)
+        if age is not None and age > SIGNAL_MAX_AGE_MINUTES:
+            log.info(
+                "[EXPIRED] %s %s id=%s (%.0f min sin ejecutarse).",
+                signal.get("strategy"),
+                signal.get("direction"),
+                signal.get("id"),
+                age,
+            )
+            _update_signal_status(signal.get("id"), "EXPIRED")
+            continue
 
         # Evita ejecutar una señal de otro magic
         # si en el futuro se comparte tabla.
