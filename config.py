@@ -3,9 +3,19 @@ Configuración central de NashtradesDRIT.
 Lee todo desde .env — no hardcodear credenciales aquí.
 """
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
 
-load_dotenv()
+# Busca el .env en la carpeta del proyecto (junto a este archivo). Tambien
+# acepta los nombres que Windows suele poner al descargar: "env" o ".env.txt".
+_BASE_DIR = Path(__file__).resolve().parent
+ENV_FILE = next((p for p in (_BASE_DIR / ".env", _BASE_DIR / "env", _BASE_DIR / ".env.txt", _BASE_DIR / "env.txt")
+                 if p.is_file()), None)
+if ENV_FILE is None:
+    print(f"[config] ERROR: no se encontro el archivo .env en {_BASE_DIR}")
+else:
+    load_dotenv(ENV_FILE, override=True)
 
 # --- MT5 ---
 MT5_LOGIN = int(os.getenv("MT5_LOGIN", "0") or 0)
