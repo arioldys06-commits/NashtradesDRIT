@@ -8,9 +8,13 @@ Adaptado de news_engine.py de TradingProEA. Hace tres cosas:
    (alcista / bajista / neutral) sobre GOLD, con su justificacion.
 
 IMPORTANTE: el sesgo de IA es CONTEXTO, no una senal de entrada — no dispara
-trades por si solo. El BLOQUEO real que pide AGV_Gold_Precision_Scalper
-("noticia de alto impacto cercana") lo hace is_high_impact_news_nearby(),
-que solo mira el calendario (impact='Alto'), no el sesgo de IA.
+trades por si solo. El BLOQUEO real que pide bot_engine.py antes de ejecutar
+CUALQUIER señal (AGV_Gold_Precision_Scalper o EMA_Momentum_Scalper_M5) lo
+hace is_high_impact_news_nearby(), que solo mira el calendario
+(impact='Alto'), no el sesgo de IA.
+
+Politica FAIL-CLOSED (2026-09-22): si la consulta a Supabase falla, se
+BLOQUEA el trade (no se asume que "no hay noticia"). Ver is_high_impact_news_nearby().
 
 Requiere (agregar a .env de este proyecto):
     ALPHA_VANTAGE_API_KEY=...
@@ -31,7 +35,7 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 import anthropic
 
-from config import SUPABASE_URL, SUPABASE_SERVICE_KEY
+from config import SUPABASE_URL, SUPABASE_KEY, SUPABASE_SERVICE_KEY
 from heartbeat_utils import send_heartbeat
 
 load_dotenv()
@@ -40,6 +44,10 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(name)s] %(levelname)s %(message)s",
 )
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
 log = logging.getLogger("news_engine")
 
 ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
@@ -53,11 +61,12 @@ AV_NEWS_URL = "https://www.alphavantage.co/query"
 RELEVANT_CURRENCIES = {"USD", "EUR", "GBP", "JPY", "CHF"}
 RELEVANT_IMPACT = {"High", "Medium"}  # se descartan Low/Holiday
 
-# Ventana de bloqueo absoluto para AGV_Gold_Precision_Scalper (solo impact='Alto')
+# Ventana de bloqueo absoluto (aplica a cualquier estrategia registrada)
 NEWS_BLOCK_MINUTES_BEFORE = 30
 NEWS_BLOCK_MINUTES_AFTER = 30
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+# Escribir en news_events requiere service_role (RLS); la anon key solo lee.
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY or SUPABASE_KEY)
 claude = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY) if ANTHROPIC_API_KEY else None
 
 
@@ -231,17 +240,22 @@ def save_events(items: list[dict]) -> int:
 
 
 # ------------------------------------------------------------------
-# 5) Bloqueo real para AGV_Gold_Precision_Scalper
+# 5) Bloqueo real para bot_engine.py (aplica a TODAS las estrategias)
 # ------------------------------------------------------------------
 def is_high_impact_news_nearby(
     minutes_before: int = NEWS_BLOCK_MINUTES_BEFORE,
     minutes_after: int = NEWS_BLOCK_MINUTES_AFTER,
 ) -> bool:
     """
-    Bloqueo absoluto real: True si hay un evento de calendario con
-    impact='Alto' dentro de la ventana [ahora - minutes_before, ahora + minutes_after].
-    Esto es lo que bot_engine.py debe llamar antes de ejecutar una señal —
-    el sesgo de IA (ai_bias) es solo contexto informativo, no bloquea nada.
+    True:
+        existe evento High cercano, O no podemos verificar
+        de forma fiable el calendario.
+
+    Politica FAIL-CLOSED (2026-09-22):
+        si falla la consulta a Supabase, el bot NO abre una posición
+        nueva (antes era fail-open: se permitía operar si la consulta
+        fallaba, lo cual es peligroso justo en el peor momento posible
+        — un hiccup de red coincidiendo con alta volatilidad real).
     """
     now = datetime.now(timezone.utc)
     window_start = (now - timedelta(minutes=minutes_before)).isoformat()
@@ -258,7 +272,8 @@ def is_high_impact_news_nearby(
         )
     except Exception as e:
         log.error(f"Fallo al consultar news_events para bloqueo: {e}")
-        return False  # si falla la consulta, no bloqueamos (fail-open) — ajustar si se prefiere fail-closed
+        # FAIL-CLOSED: si no podemos verificar, bloqueamos por seguridad.
+        return True
 
     if result.data:
         titles = ", ".join(e["title"] for e in result.data)
